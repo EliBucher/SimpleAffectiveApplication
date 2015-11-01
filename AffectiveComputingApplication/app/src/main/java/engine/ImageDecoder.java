@@ -38,7 +38,7 @@ public class ImageDecoder {
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++){
                 int pixel = image.getPixel(x, y);
-                int round = 20;
+                int round = 1;
                 pixels[x][y][0] = ((pixel >> 24) & 0xff);
                 pixels[x][y][1] = ((pixel >> 16) & 0xff)/round*round;
                 pixels[x][y][2] = ((pixel >> 8) & 0xff)/round*round;
@@ -46,9 +46,11 @@ public class ImageDecoder {
                 pixels[x][y][4] = ((pixels[x][y][0]&0x0ff)<<24)|((pixels[x][y][1]&0x0ff)<<16)|((pixels[x][y][2]&0x0ff)<<8)|(pixels[x][y][3]&0x0ff);
             }
 
+        int count = 1;
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                mapPixels(x, y, -1, -1, -1, (int)(Math.random()*20000000));
+                if(mapPixels(x, y, -1, -1, -1, count))
+                    count++;
     }
 
     private void getCounts(){
@@ -129,12 +131,12 @@ public class ImageDecoder {
 
         for(int x = 0; x < decodedImage.length; x++)
             for(int y = 0; y < decodedImage[0].length; y++)
-                bitmapImage.setPixel(x, y, mappedPixels[x][y]*-1);
+                bitmapImage.setPixel(x, y, mappedPixels[x][y]*-10000);
 
         return bitmapImage;
     }
 
-    private void mapPixels(int x, int y, int r, int g, int b, int mapValue){
+    private boolean mapPixels(int x, int y, int r, int g, int b, int mapValue){
         if(x >= 0 && x < mappedPixels.length && y >= 0 && y < mappedPixels[0].length) {
             if (r == -1) {
                 if (mappedPixels[x][y] == 0) {
@@ -147,9 +149,10 @@ public class ImageDecoder {
                     mapPixels(x - 1, y + 1, pixels[x][y][1], pixels[x][y][2], pixels[x][y][3], mappedPixels[x][y]);
                     mapPixels(x, y + 1, pixels[x][y][1], pixels[x][y][2], pixels[x][y][3], mappedPixels[x][y]);
                     mapPixels(x + 1, y + 1, pixels[x][y][1], pixels[x][y][2], pixels[x][y][3], mappedPixels[x][y]);
+                    return true;
                 }
             } else if (mappedPixels[x][y] == 0) {
-                if (Math.sqrt((r - pixels[x][y][1]) * (r - pixels[x][y][1]) + (g - pixels[x][y][1]) * (g - pixels[x][y][1]) + (b - pixels[x][y][1]) * (b - pixels[x][y][1])) < 10) {
+                if (Math.sqrt((r - pixels[x][y][1]) * (r - pixels[x][y][1]) + (g - pixels[x][y][2]) * (g - pixels[x][y][2]) + (b - pixels[x][y][3]) * (b - pixels[x][y][3])) < 14) {
                     mappedPixels[x][y] = mapValue;
                     mapPixels(x - 1, y - 1, pixels[x][y][1], pixels[x][y][2], pixels[x][y][3], mappedPixels[x][y]);
                     mapPixels(x, y - 1, pixels[x][y][1], pixels[x][y][2], pixels[x][y][3], mappedPixels[x][y]);
@@ -162,5 +165,6 @@ public class ImageDecoder {
                 }
             }
         }
+        return false;
     }
 }

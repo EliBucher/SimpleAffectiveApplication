@@ -66,6 +66,7 @@ public class MainActivity extends Activity {
     }
 
     protected void decodeImage(Bitmap image){
+        System.err.println("here");
         imageDecoder = new ImageDecoder(image);
         image2.setImageBitmap(imageDecoder.getBitmapImage());
         image3.setImageBitmap(imageDecoder.getBitmapImage2());
