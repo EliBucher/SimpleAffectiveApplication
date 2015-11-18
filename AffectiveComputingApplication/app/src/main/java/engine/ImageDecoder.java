@@ -117,7 +117,7 @@ public class ImageDecoder {
 
     // Remaps anything smaller than smallestAllowedMap
     private void remapSmallMaps(int mapValue){
-        int smallestAllowedMap = 50;
+        int smallestAllowedMap = 75;
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
                 if(countInMap.get(mappedPixels[x][y]-1) < smallestAllowedMap){
@@ -125,6 +125,12 @@ public class ImageDecoder {
                     pixels[x][y][1] = 0;
                     pixels[x][y][2] = 0;
                     pixels[x][y][3] = 0;
+                }
+                else{
+                    mappedPixels[x][y] = 1;
+                    pixels[x][y][1] = 200;
+                    pixels[x][y][2] = 200;
+                    pixels[x][y][3] = 200;
                 }
 
         mapPixels(mapValue);

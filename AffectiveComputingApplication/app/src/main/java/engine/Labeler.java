@@ -8,6 +8,8 @@ import java.util.ArrayList;
  * Created by Eli on 11/6/2015.
  */
 public class Labeler {
+    // TODO create a labeler method that labels the eyes and mouth with specific colors, removes everything else
+    // TODO create more/ better ways of removing non-action units
     private int[][] mapValues;
     private ArrayList<Integer> countInMap, badValues;
     private int width, height;
@@ -64,6 +66,12 @@ public class Labeler {
         for(Map map : maps)
             if(!map.isAcceptable(.2, 5.0))
                 badValues.add(map.getMapValue());
+
+        for(Map map : maps)
+            if(map.ratio())
+                badValues.add(map.getMapValue());
+
+        //TODO check for size violation here
     }
 
     // Removes if the map is too big or too small to be an action unit
@@ -77,13 +85,20 @@ public class Labeler {
                     mapValues[x][y] = 0;
     }
 
+    public int[][] getMapValues(){
+        return mapValues;
+    }
+
     // Creates a bitmap that represents mappedPixels array
-    public Bitmap convertToImage() {
+    public Bitmap convertToImage(Bitmap image) {
         Bitmap bitmapImage = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
 
         for (int x = 0; x < width; x++)
             for (int y = 0; y < height; y++)
-                bitmapImage.setPixel(x, y, mapValues[x][y] * -10000);
+                if(mapValues[x][y] == 0)
+                    bitmapImage.setPixel(x, y, image.getPixel(x, y));
+                else
+                    bitmapImage.setPixel(x, y, mapValues[x][y] * -10000);
 
         return bitmapImage;
     }

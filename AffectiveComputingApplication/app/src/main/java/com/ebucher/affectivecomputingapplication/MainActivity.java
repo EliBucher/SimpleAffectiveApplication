@@ -12,12 +12,14 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import engine.Analyzer;
 import engine.ImageDecoder;
 import engine.Labeler;
 
@@ -26,9 +28,13 @@ public class MainActivity extends Activity {
     private String mImageFullPathAndName = "";
     private static final int SELECT_PICTURE = 1;
     private static final int TAKE_PICTURE = 2;
-    private ImageView image1, image2, image3;
+    private ImageView image1, image2, image3, image4, emotion;
+    private Button button;
+    private Bitmap image;
     private ImageDecoder imageDecoder;
     private Labeler labeler;
+    private Analyzer analyzer;
+    private int stage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,12 +44,39 @@ public class MainActivity extends Activity {
         image1 = (ImageView) findViewById(R.id.image1);
         image2 = (ImageView) findViewById(R.id.image2);
         image3 = (ImageView) findViewById(R.id.image3);
+        image4 = (ImageView) findViewById(R.id.image4);
+        emotion = (ImageView) findViewById(R.id.emotion);
+
+        button = (Button) findViewById(R.id.button);
+
+        stage = 0;
 
     }
 
     public void DoTakePhoto(View view) {
-        Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
-        startActivityForResult(intent, TAKE_PICTURE);
+        // TODO rewrite this as a case
+        if(stage == 0) {
+            button.setText("Decode Image");
+            Intent intent = new Intent("android.media.action.IMAGE_CAPTURE");
+            startActivityForResult(intent, TAKE_PICTURE);
+        }
+        if(stage == 1) {
+            button.setText("Label Image");
+            decodeImage();
+        }
+        if(stage == 2) {
+            button.setText("Analyze Image");
+            labelImage(imageDecoder.getMapValues(), imageDecoder.getCountInMap());
+        }
+        if(stage == 3) {
+            button.setText("Get Emotion");
+            analyzeImage(labeler.getMapValues());
+        }
+        if(stage == 4)
+            getEmotion();
+        // TODO make stage loop for new picture
+        stage++;
+
 
 //        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
 //        /**
@@ -60,7 +93,7 @@ public class MainActivity extends Activity {
     protected void onActivityResult (int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        Bitmap image = null;
+        image = null;
 
         if (requestCode == TAKE_PICTURE) {
             if (resultCode == RESULT_OK && null != data) {
@@ -89,18 +122,24 @@ public class MainActivity extends Activity {
 //                cursor.close();
             }
         }
-
-        decodeImage(image);
     }
 
-    protected void decodeImage(Bitmap image){
+    protected void decodeImage(){
         imageDecoder = new ImageDecoder(image);
         image2.setImageBitmap(imageDecoder.convertToImage());
-        labelImage(imageDecoder.getMapValues(), imageDecoder.getCountInMap());
     }
 
     protected void labelImage(int[][] mapValues, ArrayList<Integer> countInMap){
         labeler = new Labeler(mapValues, countInMap);
-        image3.setImageBitmap(labeler.convertToImage());
+        image3.setImageBitmap(labeler.convertToImage(image));
+    }
+
+    protected void analyzeImage(int[][] mapValues){
+        analyzer = new Analyzer(mapValues);
+        image4.setImageBitmap(analyzer.convertToImage(image));
+    }
+
+    protected void getEmotion(){
+        emotion.setImageBitmap(analyzer.getEmotion(this.getApplicationContext()));
     }
 }
